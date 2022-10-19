@@ -24,6 +24,10 @@ import org.goldrenard.jb.model.ParseState;
 import org.goldrenard.jb.model.Request;
 import org.goldrenard.jb.tags.*;
 import org.goldrenard.jb.tags.base.AIMLTagProcessor;
+import org.goldrenard.jb.tags.restapi.APIBody;
+import org.goldrenard.jb.tags.restapi.APICall;
+import org.goldrenard.jb.tags.restapi.APIHeader;
+import org.goldrenard.jb.tags.restapi.APIParam;
 import org.goldrenard.jb.utils.DomUtils;
 import org.goldrenard.jb.utils.JapaneseUtils;
 import org.slf4j.Logger;
@@ -94,6 +98,11 @@ public class AIMLProcessor {
         registerProcessor(new UniqProcessor());
         registerProcessor(new UppercaseProcessor());
         registerProcessor(new VocabularyProcessor());
+        registerProcessor(new APICall());
+        registerProcessor(new APIHeader());
+        registerProcessor(new APIParam());
+        registerProcessor(new APIBody());
+
         List<AIMLTagProcessor> extensions = bot.getConfiguration().getTagProcessors();
         if (extensions != null) {
             extensions.forEach(this::registerProcessor);
@@ -259,20 +268,28 @@ public class AIMLProcessor {
      * @return bot's reply.
      */
     public String respond(Request request, String input, String that, String topic, Chat chatSession, int srCnt) {
+
         if (log.isTraceEnabled()) {
             log.trace("input: {}, that: {}, topic: {}, chatSession: {}, srCnt: {}", input, that, topic, chatSession, srCnt);
         }
+
         String response;
+
         if (input == null || input.length() == 0) {
             input = Constants.null_input;
         }
+
         response = chatSession.getBot().getConfiguration().getLanguage().getDefaultResponse();
+
         try {
+
             Nodemapper leaf = chatSession.getBot().getBrain().match(input, that, topic);
+
             if (leaf == null) {
                 return response;
             }
-            ParseState ps = new ParseState(request,this, 0, chatSession, input, that, topic, leaf, srCnt);
+
+            ParseState ps = new ParseState(request, this, 0, chatSession, input, that, topic, leaf, srCnt);
             String template = leaf.getCategory().getTemplate();
             response = evalTemplate(template, ps);
             if (log.isTraceEnabled()) {

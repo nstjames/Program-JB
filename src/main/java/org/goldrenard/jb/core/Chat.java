@@ -182,16 +182,21 @@ public class Chat {
         String response;
 
         response = bot.getProcessor().respond(request, input, that, topic, this);
+
         String normResponse = bot.getPreProcessor().normalize(response);
-        if (bot.getConfiguration().isJpTokenize()) {
-            normResponse = JapaneseUtils.tokenizeSentence(normResponse);
-        }
+
+        if (bot.getConfiguration().isJpTokenize()) normResponse = JapaneseUtils.tokenizeSentence(normResponse);
+
         String sentences[] = bot.getPreProcessor().sentenceSplit(normResponse);
+
         for (String s : sentences) {
+
             if (s.trim().equals("")) {
                 s = Constants.default_that;
             }
+
             contextThatHistory.add(s);
+
         }
         return response.trim();
     }
@@ -247,4 +252,50 @@ public class Chat {
         }
         return bot.getConfiguration().getLanguage().getErrorResponse();
     }
+
+    /**
+     * return a compound response to a multiple-sentence request. "Multiple" means one or more.
+     *
+     * @param request client's multiple-sentence input
+     * @return Response
+     */
+//    public List<BotResponse> multiBotResponse(Request request) {
+//
+//        StringBuilder response = new StringBuilder();
+//
+//        try {
+//
+//            String normalized = bot.getPreProcessor().normalize(request.getInput());
+//
+//            if (bot.getConfiguration().isJpTokenize()) normalized = JapaneseUtils.tokenizeSentence(normalized);
+//
+//            String sentences[] = bot.getPreProcessor().sentenceSplit(normalized);
+//            History<String> contextThatHistory = new History<>(bot.getConfiguration().getMaxHistory(), "contextThat");
+//
+//            for (String sentence : sentences) {
+//                String reply = respond(request, sentence, contextThatHistory);
+//                response.append(" ").append(reply.trim());
+//            }
+//
+//            String result = response.toString();
+//
+//            requestHistory.add(request.getInput());
+//            responseHistory.add(result);
+//            thatHistory.add(contextThatHistory);
+//
+//            result = result.replaceAll("[\n]+", "\n").trim();
+//            result = result.replaceAll("[\t]]+", "\t").trim();
+//
+//            if (doWrites) {
+//                bot.writeLearnfIFCategories();
+//            }
+//
+//            return result;
+//
+//        } catch (Exception e) {
+//            log.error("Error: ", e);
+//        }
+//
+//        return bot.getConfiguration().getLanguage().getErrorResponse();
+//    }
 }
