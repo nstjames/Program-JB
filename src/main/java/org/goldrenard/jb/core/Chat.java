@@ -19,6 +19,7 @@ package org.goldrenard.jb.core;
 import lombok.Getter;
 import lombok.Setter;
 import org.goldrenard.jb.configuration.Constants;
+import org.goldrenard.jb.extension.ChatRoutine;
 import org.goldrenard.jb.model.History;
 import org.goldrenard.jb.model.Predicates;
 import org.goldrenard.jb.model.Request;
@@ -28,6 +29,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Class encapsulating a chat session between a bot and a client
@@ -47,6 +52,10 @@ public class Chat {
     private History<String> responseHistory;
     private History<String> inputHistory;
     private Predicates predicates;
+
+    private ChatRoutine routine;
+
+    private Map<String, ChatRoutine> routines = new HashMap<>();
 
     /**
      * Constructor  (defualt customer ID)
@@ -99,6 +108,10 @@ public class Chat {
         } catch (Exception e) {
             log.warn("Error reading predicates", e);
         }
+    }
+
+    public Boolean hasRunningRoutine(){
+        return (null == this.routine);
     }
 
     /**

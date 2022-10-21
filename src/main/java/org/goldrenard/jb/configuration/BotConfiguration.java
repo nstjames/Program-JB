@@ -56,6 +56,9 @@ public class BotConfiguration {
     @Builder.Default
     private boolean graphShortCuts = false;
 
+    @Builder.Default
+    private Long id = 1L;
+
     @Setter(AccessLevel.PROTECTED)
     @Builder.Default
     private int maxHistory = 32;
