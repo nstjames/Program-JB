@@ -111,7 +111,7 @@ public class Chat {
     }
 
     public Boolean hasRunningRoutine(){
-        return (null == this.routine);
+        return (null != this.routine);
     }
 
     /**
