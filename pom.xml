@@ -54,7 +54,7 @@
         <sanmoku.version>0.0.5</sanmoku.version>
         <sanmoku-feature-ex.version>0.0.1</sanmoku-feature-ex.version>
         <lang3.version>3.7</lang3.version>
-        <lombok.version>1.18.16</lombok.version>
+        <lombok.version>1.18.22</lombok.version>
         <commons-io.version>2.6</commons-io.version>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
