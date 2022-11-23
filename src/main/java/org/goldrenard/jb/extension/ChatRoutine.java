@@ -10,4 +10,7 @@ public interface ChatRoutine {
 
     ChatResponse runRoutine();
 
+    Boolean isFinalized();
+
+
 }

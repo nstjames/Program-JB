@@ -25,6 +25,7 @@ public class APICall extends BaseTagProcessor {
 
         GenericRequest request = new GenericRequest(url, Method.valueOf(method));
 
+
         for (int i = 0; i < node.getChildNodes().getLength(); i++) {
 
             Node entry = node.getChildNodes().item(i);

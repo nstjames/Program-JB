@@ -99,7 +99,7 @@ public class TestAB {
                     log.trace("STATE={}:THAT={}:TOPIC={}", textLine, chatSession.getThatHistory().get(0).get(0),
                             chatSession.getPredicates().get("topic"));
                 }
-                String response = chatSession.multisentenceRespond(textLine);
+                String response = chatSession.multisentenceRespond(null,textLine).getMessage();
                 while (response.contains("&lt;")) {
                     response = response.replace("&lt;", "<");
                 }

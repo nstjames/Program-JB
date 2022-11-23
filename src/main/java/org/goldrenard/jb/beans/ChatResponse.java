@@ -12,6 +12,15 @@ import java.util.List;
 @NoArgsConstructor
 public class ChatResponse {
 
+    public ChatResponse(String message) {
+        this.message = message;
+    }
+
+    public ChatResponse(String sessionId, String message) {
+        this.sessionId = sessionId;
+        this.message = message;
+    }
+
     private String sessionId;
     private String message;
     private List<Option> options;

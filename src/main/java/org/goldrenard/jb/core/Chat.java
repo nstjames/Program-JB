@@ -16,10 +16,14 @@
  */
 package org.goldrenard.jb.core;
 
+import com.google.gson.Gson;
+import com.nessotech.jbextension.xml.Form;
 import lombok.Getter;
 import lombok.Setter;
+import org.goldrenard.jb.beans.ChatResponse;
 import org.goldrenard.jb.configuration.Constants;
 import org.goldrenard.jb.extension.ChatRoutine;
+import org.goldrenard.jb.model.APIResponse;
 import org.goldrenard.jb.model.History;
 import org.goldrenard.jb.model.Predicates;
 import org.goldrenard.jb.model.Request;
@@ -28,6 +32,11 @@ import org.goldrenard.jb.utils.JapaneseUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -53,9 +62,6 @@ public class Chat {
     private History<String> inputHistory;
     private Predicates predicates;
 
-    private ChatRoutine routine;
-
-    private Map<String, ChatRoutine> routines = new HashMap<>();
 
     /**
      * Constructor  (defualt customer ID)
@@ -110,10 +116,6 @@ public class Chat {
         }
     }
 
-    public Boolean hasRunningRoutine(){
-        return (null != this.routine);
-    }
-
     /**
      * Load Triple Store knowledge base
      */
@@ -156,11 +158,11 @@ public class Chat {
     private void chat() {
         try {
             String request = "SET PREDICATES"; // TODO why it is executed here?
-            String response = multisentenceRespond(request);
+            String response = multisentenceRespond(null,request).getMessage();
             while (!"quit".equals(request)) {
                 log.info("Human: ");
                 request = IOUtils.readInputTextLine();
-                response = multisentenceRespond(request);
+                response = multisentenceRespond(null,request).getMessage();
                 log.info("Robot: {}", response);
             }
         } catch (Exception e) {
@@ -227,8 +229,62 @@ public class Chat {
         return respond(request, input, that, predicates.get("topic"), contextThatHistory);
     }
 
-    public String multisentenceRespond(String request) {
-        return multisentenceRespond(Request.builder().input(request).build());
+    private Form form;
+
+    public ChatResponse multisentenceRespond(String sessionId, String request) {
+
+        String response = "";
+
+        if(!hasForm()){
+            response = multisentenceRespond(Request.builder().input(request).build());
+        }else{
+
+            this.form.write(request);
+            ChatResponse chatResponse = new ChatResponse(sessionId,this.form.next());
+
+            if(this.form.hasEnded())
+                this.form = null;
+
+            return chatResponse;
+        }
+
+        if(response.contains("<Form>")){
+
+            try {
+                JAXBContext context = JAXBContext.newInstance(Form.class);
+                XMLStreamReader reader = XMLInputFactory.newInstance().createXMLStreamReader(new StringReader(response));
+                Form form = (Form) context.createUnmarshaller().unmarshal(reader);
+                this.form = form;
+                return new ChatResponse(sessionId,form.start());
+            } catch (JAXBException e) {
+                throw new RuntimeException(e);
+            } catch (XMLStreamException e) {
+                throw new RuntimeException(e);
+            }
+
+        }else if(response.contains("JSON:")){
+            response = response.replaceFirst("JSON:", "");
+
+            APIResponse apiResponse = new Gson().fromJson(response, APIResponse.class);
+
+            ChatResponse chatResponse = new ChatResponse();
+
+            chatResponse.setMessage(apiResponse.getMessage());
+            chatResponse.setMeta(apiResponse.getMeta());
+            chatResponse.setOptions(apiResponse.getOptions());
+            chatResponse.setSessionId(sessionId);
+
+            return chatResponse;
+        }
+
+        else{
+            return new ChatResponse(sessionId,response);
+        }
+
+    }
+
+    public boolean hasForm(){
+        return null!=this.form;
     }
 
     /**
@@ -266,49 +322,4 @@ public class Chat {
         return bot.getConfiguration().getLanguage().getErrorResponse();
     }
 
-    /**
-     * return a compound response to a multiple-sentence request. "Multiple" means one or more.
-     *
-     * @param request client's multiple-sentence input
-     * @return Response
-     */
-//    public List<BotResponse> multiBotResponse(Request request) {
-//
-//        StringBuilder response = new StringBuilder();
-//
-//        try {
-//
-//            String normalized = bot.getPreProcessor().normalize(request.getInput());
-//
-//            if (bot.getConfiguration().isJpTokenize()) normalized = JapaneseUtils.tokenizeSentence(normalized);
-//
-//            String sentences[] = bot.getPreProcessor().sentenceSplit(normalized);
-//            History<String> contextThatHistory = new History<>(bot.getConfiguration().getMaxHistory(), "contextThat");
-//
-//            for (String sentence : sentences) {
-//                String reply = respond(request, sentence, contextThatHistory);
-//                response.append(" ").append(reply.trim());
-//            }
-//
-//            String result = response.toString();
-//
-//            requestHistory.add(request.getInput());
-//            responseHistory.add(result);
-//            thatHistory.add(contextThatHistory);
-//
-//            result = result.replaceAll("[\n]+", "\n").trim();
-//            result = result.replaceAll("[\t]]+", "\t").trim();
-//
-//            if (doWrites) {
-//                bot.writeLearnfIFCategories();
-//            }
-//
-//            return result;
-//
-//        } catch (Exception e) {
-//            log.error("Error: ", e);
-//        }
-//
-//        return bot.getConfiguration().getLanguage().getErrorResponse();
-//    }
 }
