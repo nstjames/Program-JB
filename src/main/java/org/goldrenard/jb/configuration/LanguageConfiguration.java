@@ -26,7 +26,7 @@ import lombok.Setter;
 public class LanguageConfiguration {
 
     @Builder.Default
-    private String defaultResponse = "I have no answer for that.";
+    private String defaultResponse = "";
     @Builder.Default
     private String errorResponse = "Something is wrong with my brain.";
     @Builder.Default

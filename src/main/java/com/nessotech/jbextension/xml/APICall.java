@@ -1,19 +1,13 @@
 package com.nessotech.jbextension.xml;
 
-import com.nessotech.libraries.RestUtil.bean.Header;
-import com.nessotech.libraries.RestUtil.enums.Method;
-import com.nessotech.libraries.RestUtil.request.GenericRequest;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;
 import org.goldrenard.jb.beans.ChatResponse;
 import org.goldrenard.jb.configuration.Constants;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.xml.bind.annotation.*;
 import java.net.URL;

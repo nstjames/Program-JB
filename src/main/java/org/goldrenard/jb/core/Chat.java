@@ -17,6 +17,7 @@
 package org.goldrenard.jb.core;
 
 import com.google.gson.Gson;
+import com.nessotech.jbextension.parser.ResponseParser;
 import com.nessotech.jbextension.xml.Form;
 import lombok.Getter;
 import lombok.Setter;
@@ -180,7 +181,7 @@ public class Chat {
      * @return bot's reply
      */
     private String respond(Request request, String input, String that, String topic, History<String> contextThatHistory) {
-        boolean repetition = true;
+        boolean repetition = false;
         for (int i = 0; i < bot.getConfiguration().getRepetitionCount(); i++) {
             if (inputHistory.get(i) == null || !input.toUpperCase().equals(inputHistory.get(i).toUpperCase())) {
                 repetition = false;
@@ -233,52 +234,41 @@ public class Chat {
 
     public ChatResponse multisentenceRespond(String sessionId, String request) {
 
-        String response = "";
+        ChatResponse response = new ChatResponse();
 
         if(!hasForm()){
-            response = multisentenceRespond(Request.builder().input(request).build());
+            response = ResponseParser.parse(multisentenceRespond(Request.builder().input(request).build()),this);
+            response.setSessionId(sessionId);
         }else{
 
-            this.form.write(request);
-            ChatResponse chatResponse = new ChatResponse(sessionId,this.form.next());
+            response = this.form.write(request);
+            response.setSessionId(sessionId);
 
-            if(this.form.hasEnded())
-                this.form = null;
-
-            return chatResponse;
+            return response;
         }
 
-        if(response.contains("<Form>")){
+        if(response.getMessage().contains("<Form>")){
 
             try {
                 JAXBContext context = JAXBContext.newInstance(Form.class);
-                XMLStreamReader reader = XMLInputFactory.newInstance().createXMLStreamReader(new StringReader(response));
+                XMLStreamReader reader = XMLInputFactory.newInstance().createXMLStreamReader(new StringReader(response.getMessage()));
                 Form form = (Form) context.createUnmarshaller().unmarshal(reader);
+                form.setChat(this);
                 this.form = form;
-                return new ChatResponse(sessionId,form.start());
+
+                ChatResponse chatResponse = form.start();
+                chatResponse.setSessionId(sessionId);
+                return chatResponse;
             } catch (JAXBException e) {
                 throw new RuntimeException(e);
             } catch (XMLStreamException e) {
                 throw new RuntimeException(e);
             }
 
-        }else if(response.contains("JSON:")){
-            response = response.replaceFirst("JSON:", "");
-
-            APIResponse apiResponse = new Gson().fromJson(response, APIResponse.class);
-
-            ChatResponse chatResponse = new ChatResponse();
-
-            chatResponse.setMessage(apiResponse.getMessage());
-            chatResponse.setMeta(apiResponse.getMeta());
-            chatResponse.setOptions(apiResponse.getOptions());
-            chatResponse.setSessionId(sessionId);
-
-            return chatResponse;
         }
 
         else{
-            return new ChatResponse(sessionId,response);
+            return response;
         }
 
     }

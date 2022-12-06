@@ -4,10 +4,10 @@ import org.goldrenard.jb.beans.ChatResponse;
 
 public interface FormOperation {
 
-    String start();
+    ChatResponse start();
 
-    String next();
-    void write(String input);
+    ChatResponse next();
+    ChatResponse write(String input);
 
     void runOperation();
 
